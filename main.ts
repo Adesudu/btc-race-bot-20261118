@@ -1,3 +1,11 @@
+// Strategy at a glance (mean-reversion scalper):
+//   Entry — close drops >=100 bps below the 120-bar high, then recovers
+//   >=15 bps off the pullback low.
+//   Exit — take profit +80 bps above entry; trailing stop 200 bps below
+//   the peak since entry; hard stop -150 bps below entry.
+//   Pace — 30-bar cooldown after a sell, no new entries in the last 30
+//   bars, and no fallback buy: on this down-drifting window the dip
+//   entries alone clear the >=1-trade guardrail.
 // Dip-recovery BTC bot for make.fun btc-race-24h-20261118-1444.
 //
 // The dev window for this race is a slow grind down: BTC falls 281 bps
@@ -119,7 +127,7 @@ await runBars({
 
     // Flat: no re-entry during the cooldown after a sell, and no new
     // position so late that the end-of-window flatten would eat it.
-    if (bot.barsSeen - bot.lastSellBar < COOLDOWN_BARS) return [];
+    if (bot.barsSeen - bot.lastSellBar < COOLDOWN_BARS) return []; // still inside the 30-bar cooldown after the last sell — sit out the chop
     if (bot.barsSeen > TOTAL_BARS - NO_ENTRY_LAST_BARS) return [];
 
     // Dip-recovery entry: arm on a pullback from the running high, buy
